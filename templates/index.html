@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ESP32 Product Check</title>
+</head>
+<body>
+  <h1>ESP32 Product Check</h1>
+
+  <h3>Chế độ đánh giá:</h3>
+  <select id="mode" onchange="changeMode()">
+    <option value="auto" {% if mode == "auto" %}selected{% endif %}>Auto</option>
+    <option value="manual" {% if mode == "manual" %}selected{% endif %}>Manual</option>
+  </select>
+
+  <h3>Ảnh mới nhất:</h3>
+  <img id="productImage" src="/static/latest.jpg?t={{ timestamp }}" alt="Latest Image" width="400"/>
+
+  <div id="manual-buttons" style="display: none;">
+    <button onclick="sendManualResult('OK')">OK</button>
+    <button onclick="sendManualResult('ERROR')">ERROR</button>
+  </div>
+
+  <p id="statusMessage">Chưa có dữ liệu</p>
+
+  <script>
+    let mode = "{{ mode }}";
+
+    function changeMode() {
+      mode = document.getElementById("mode").value;
+      fetch('/set-mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: mode })
+      });
+      updateManualButtons();
+    }
+
+    function updateManualButtons() {
+      document.getElementById("manual-buttons").style.display = (mode === "manual") ? "block" : "none";
+    }
+
+    function sendManualResult(result) {
+      fetch('/manual-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ result: result })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("statusMessage").innerText = data.message || data.error;
+      });
+    }
+
+    function refreshStatus() {
+      fetch('/status')
+        .then(res => res.json())
+        .then(data => {
+          if (data.image) {
+            const timestamp = new Date().getTime();
+            document.getElementById("productImage").src = `/static/${data.image}?t=${timestamp}`;
+      }
+          }
+          if (data.status === "WAITING") {
+            document.getElementById("statusMessage").innerText = "Đang chờ xử lý...";
+          } else {
+            document.getElementById("statusMessage").innerText = Kết quả: ${data.status};
+          }
+        });
+    }
+
+    updateManualButtons();
+    setInterval(refreshStatus, 2000);
+  </script>
+</body>
+</html>
