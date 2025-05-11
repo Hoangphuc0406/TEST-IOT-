@@ -24,7 +24,7 @@ UPLOAD_FOLDER = 'static'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Initialize Firebase
-cred = credentials.Certificate("firebase-key.json")
+cred = credentials.Certificate("firebase_key.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
