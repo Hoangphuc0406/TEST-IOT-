@@ -17,7 +17,7 @@ def add_no_cache(response):
     response.cache_control.no_cache = True
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
-    return respons
+    return response
 
 
 UPLOAD_FOLDER = 'static'
