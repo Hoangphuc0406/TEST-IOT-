@@ -53,22 +53,36 @@
       });
     }
 
-    function refreshStatus() {
-      fetch('/status')
-        .then(res => res.json())
-        .then(data => {
-          if (data.image) {
-            const timestamp = new Date().getTime();
-            document.getElementById("productImage").src = `/static/${data.image}?t=${timestamp}`;
+  function refreshStatus() {
+  fetch('/status')
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch status');
       }
-          }
-          if (data.status === "WAITING") {
-            document.getElementById("statusMessage").innerText = "Đang chờ xử lý...";
-          } else {
-            document.getElementById("statusMessage").innerText = Kết quả: ${data.status};
-          }
-        });
-    }
+      return res.json();
+    })
+    .then(data => {
+      if (data.image) {
+        const timestamp = new Date().getTime();  // Thêm timestamp để tránh cache
+        const productImage = document.getElementById("productImage");
+
+        // Cập nhật lại src của ảnh với timestamp mới
+        productImage.src = `/static/${data.image}?t=${timestamp}`;
+
+        // Cập nhật trạng thái
+        if (data.status === "WAITING") {
+          document.getElementById("statusMessage").innerText = "Đang chờ xử lý...";
+        } else {
+          document.getElementById("statusMessage").innerText = `Kết quả: ${data.status}`;
+        }
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      document.getElementById("statusMessage").innerText = "Lỗi kết nối!";
+    });
+}
+
 
     updateManualButtons();
     setInterval(refreshStatus, 2000);
